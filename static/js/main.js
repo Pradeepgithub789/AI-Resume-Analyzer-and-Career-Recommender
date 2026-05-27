@@ -218,7 +218,7 @@ async function fetchWithRetry(url, options = {}, retries = 2, delay = 1000) {
 // Parse Resume Upload
 el.uploadForm.addEventListener('submit', (e) => {
     console.log("Submit triggered");
-    alert("Analyze clicked");
+
 
     e.preventDefault();
     const files = el.fileInput.files;
@@ -235,7 +235,7 @@ el.uploadForm.addEventListener('submit', (e) => {
     // Show spinner loader
     el.loadingOverlay.classList.remove('hidden');
 
-    alert("Sending request");
+
 
     fetchWithRetry('/api/analyze', {
         method: 'POST',
@@ -243,7 +243,7 @@ el.uploadForm.addEventListener('submit', (e) => {
     })
         .then(response => response.json())
         .then(data => {
-            alert("Response recieved");
+
             state.parsedResume = data;
             renderAtsResults();
             renderCareerRoadmaps();

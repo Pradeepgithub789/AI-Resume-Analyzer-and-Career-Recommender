@@ -4,7 +4,8 @@
 const state = {
     parsedResume: null, // Complete parsed resume JSON payload
     activeSkillCategory: null, // The active category shown in the Skill tab
-    sampleJds: [] // Pre-loaded corporate job descriptions
+    sampleJds: [], // Pre-loaded corporate job descriptions
+    selectedFile: null // Current selected File or Blob
 };
 
 // Elements cache
@@ -133,6 +134,14 @@ function handleFileSelection(file) {
         return;
     }
 
+    if (file.size > 16 * 1024 * 1024) {
+        showToast('File is too large. Maximum size is 16MB.', 'error');
+        clearFileInput();
+        return;
+    }
+
+    state.selectedFile = file;
+
     // Display preview details
     el.fileName.textContent = file.name;
     el.fileSize.textContent = formatBytes(file.size);
@@ -151,6 +160,7 @@ el.removeFileBtn.addEventListener('click', () => {
 
 function clearFileInput() {
     el.fileInput.value = '';
+    state.selectedFile = null;
     el.dropZone.classList.remove('hidden');
     el.filePreview.classList.add('hidden');
     el.analyzeBtn.disabled = true;
@@ -219,52 +229,71 @@ async function fetchWithRetry(url, options = {}, retries = 2, delay = 1000) {
 el.uploadForm.addEventListener('submit', (e) => {
     console.log("Submit triggered");
 
-
     e.preventDefault();
-    const files = el.fileInput.files;
-    if (files.length === 0) return;
-
-    const formData = new FormData();
-    formData.append('resume', files[0]);
-
-    // Append student/fresher toggle state
-    const fresherToggle = document.getElementById('fresherToggle');
-    const isFresher = fresherToggle ? fresherToggle.checked : false;
-    formData.append('is_fresher', isFresher);
+    const file = state.selectedFile;
+    if (!file) {
+        showToast('Please select a PDF resume first', 'error');
+        return;
+    }
 
     // Show spinner loader
     el.loadingOverlay.classList.remove('hidden');
 
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+        try {
+            const arrayBuffer = evt.target.result;
+            const blob = new Blob([arrayBuffer], { type: file.type || 'application/pdf' });
 
+            const formData = new FormData();
+            formData.append('resume', blob, file.name || 'resume.pdf');
 
-    fetchWithRetry('/api/analyze', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
+            // Append student/fresher toggle state
+            const fresherToggle = document.getElementById('fresherToggle');
+            const isFresher = fresherToggle ? fresherToggle.checked : false;
+            formData.append('is_fresher', isFresher);
 
-            state.parsedResume = data;
-            renderAtsResults();
-            renderCareerRoadmaps();
-            showToast('Resume analyzed successfully', 'success');
+            fetchWithRetry('/api/analyze', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    state.parsedResume = data;
+                    renderAtsResults();
+                    renderCareerRoadmaps();
+                    showToast('Resume analyzed successfully', 'success');
 
-            // Smooth scroll to results
-            setTimeout(() => {
-                el.resultsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
-        })
-        .catch(err => {
+                    // Smooth scroll to results
+                    setTimeout(() => {
+                        el.resultsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                })
+                .catch(err => {
+                    console.error(err);
+                    let msg = err.message || 'Failed to analyze resume';
+                    if (msg.toLowerCase().includes('failed to fetch') || msg.toLowerCase().includes('load failed')) {
+                        msg = 'Network connection failed. This can happen on slow mobile networks, if the file is too large, or if the Render server is sleeping (free tier). Please try again or use a smaller PDF file.';
+                    }
+                    showToast(msg, 'error');
+                })
+                .finally(() => {
+                    el.loadingOverlay.classList.add('hidden');
+                });
+        } catch (err) {
             console.error(err);
-            let msg = err.message || 'Failed to analyze resume';
-            if (msg.toLowerCase().includes('failed to fetch') || msg.toLowerCase().includes('load failed')) {
-                msg = 'Network connection failed. This can happen on slow mobile networks, if the file is too large, or if the Render server is sleeping (free tier). Please try again or use a smaller PDF file.';
-            }
-            showToast(msg, 'error');
-        })
-        .finally(() => {
             el.loadingOverlay.classList.add('hidden');
-        });
+            showToast('Error preparing file for upload. Please try again.', 'error');
+        }
+    };
+
+    reader.onerror = function (err) {
+        console.error("FileReader error:", err);
+        el.loadingOverlay.classList.add('hidden');
+        showToast('Failed to read the selected file. If using a cloud drive, please ensure the file is downloaded to your device.', 'error');
+    };
+
+    reader.readAsArrayBuffer(file);
 });
 
 // Job Description similarity compare handler
@@ -372,9 +401,9 @@ function renderAtsResults() {
     el.resultsGrid.classList.remove('hidden');
 
     // Populate Resume Preview Panel
-    const files = el.fileInput.files;
-    if (files && files.length > 0) {
-        el.previewFileName.textContent = files[0].name;
+    const file = state.selectedFile;
+    if (file && file.name) {
+        el.previewFileName.textContent = file.name;
     } else {
         el.previewFileName.textContent = "Uploaded_Resume.pdf";
     }

@@ -235,12 +235,15 @@ el.uploadForm.addEventListener('submit', (e) => {
     // Show spinner loader
     el.loadingOverlay.classList.remove('hidden');
 
+    alert("Sending request");
+
     fetchWithRetry('/api/analyze', {
         method: 'POST',
         body: formData
     })
         .then(response => response.json())
         .then(data => {
+            alert("Response recieved");
             state.parsedResume = data;
             renderAtsResults();
             renderCareerRoadmaps();

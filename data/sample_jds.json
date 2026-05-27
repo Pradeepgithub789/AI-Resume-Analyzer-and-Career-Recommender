@@ -1,0 +1,77 @@
+[
+  {
+    "id": "se_backend",
+    "title": "Backend Software Engineer",
+    "company": "TechNova Solutions",
+    "experience": "2+ years",
+    "description": "We are seeking a Backend Software Engineer to design, build, and maintain our high-performance APIs and microservices. You will collaborate with cross-functional teams to deliver robust cloud-native applications.",
+    "skills": ["Python", "Django", "SQL", "PostgreSQL", "REST APIs", "Docker", "Git", "AWS"],
+    "preferred_skills": ["Redis", "Kubernetes", "CI/CD", "NoSQL", "FastAPI"],
+    "responsibilities": [
+      "Develop scalable APIs and services in Python.",
+      "Integrate SQL/NoSQL databases and optimize queries.",
+      "Deploy services using AWS, Docker, and Kubernetes.",
+      "Write unit and integration tests to ensure quality."
+    ]
+  },
+  {
+    "id": "se_frontend",
+    "title": "Frontend React Developer",
+    "company": "PixelCraft Studios",
+    "experience": "1-3 years",
+    "description": "Join our product design team as a Frontend React Developer. You will translate designs into premium, responsive UI/UX experiences and build clean, maintainable components using React and TypeScript.",
+    "skills": ["HTML", "CSS", "JavaScript", "TypeScript", "React", "Redux", "TailwindCSS", "Git"],
+    "preferred_skills": ["Next.js", "Jest", "GraphQL", "Figma", "Web Performance"],
+    "responsibilities": [
+      "Develop responsive and accessible web interfaces.",
+      "Optimize web components for maximum performance across devices.",
+      "Collaborate with product designers and backend engineers.",
+      "Implement robust state management using Redux."
+    ]
+  },
+  {
+    "id": "ai_ml_eng",
+    "title": "AI/ML Engineer",
+    "company": "DeepMinded AI Labs",
+    "experience": "Entry to Mid level",
+    "description": "We are looking for an AI/ML Engineer to train, evaluate, and deploy advanced machine learning and deep learning models. You will work on NLP, computer vision, and recommender systems.",
+    "skills": ["Python", "Machine Learning", "Deep Learning", "TensorFlow", "PyTorch", "Scikit-Learn", "Pandas", "NumPy", "NLP"],
+    "preferred_skills": ["M LOps", "Hugging Face", "SQL", "Docker", "OpenCV"],
+    "responsibilities": [
+      "Design, build, and evaluate machine learning pipelines.",
+      "Fine-tune deep learning models (NLP/Vision) for custom datasets.",
+      "Collaborate with data engineers to build robust training workflows.",
+      "Deploy ML models as APIs in production environments."
+    ]
+  },
+  {
+    "id": "data_analyst",
+    "title": "Data Analyst",
+    "company": "Apex Analytics Corp",
+    "experience": "1-3 years",
+    "description": "We are looking for a Data Analyst to transform raw data into actionable business intelligence. You will construct visual dashboards, write advanced SQL queries, and perform statistical analysis.",
+    "skills": ["SQL", "Excel", "Python", "Pandas", "Tableau", "PowerBI", "Data Visualization", "Statistics"],
+    "preferred_skills": ["NumPy", "R", "Google Analytics", "Data Warehousing", "A/B Testing"],
+    "responsibilities": [
+      "Query complex databases to pull relevant transactional datasets.",
+      "Design and maintain interactive dashboards in Tableau and PowerBI.",
+      "Perform exploratory data analysis using Pandas and NumPy.",
+      "Communicate analytical insights clearly to non-technical business partners."
+    ]
+  },
+  {
+    "id": "devops_eng",
+    "title": "Cloud DevOps Engineer",
+    "company": "CloudScale Systems",
+    "experience": "2+ years",
+    "description": "We are hiring a Cloud DevOps Engineer to design, deploy, and manage our cloud infrastructure, automate deployment pipelines (CI/CD), and ensure the scalability, reliability, and security of our services.",
+    "skills": ["AWS", "Docker", "Kubernetes", "Linux", "Bash", "CI/CD", "Git", "Terraform"],
+    "preferred_skills": ["Ansible", "GCP", "Python", "Monitoring", "Prometheus", "Grafana"],
+    "responsibilities": [
+      "Provision cloud infrastructure securely using Terraform.",
+      "Manage containerized microservices via Kubernetes clusters.",
+      "Construct robust CI/CD pipelines using GitHub Actions or Jenkins.",
+      "Implement systems monitoring, logging, and alerting services."
+    ]
+  }
+]

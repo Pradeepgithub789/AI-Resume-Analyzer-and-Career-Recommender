@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer & Career Recommender</title>
+    <!-- Google Fonts for elite placement typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for high-quality dashboard icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Premium Style -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+    <!-- Loading Spinner Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner-container">
+            <div class="tech-spinner"></div>
+            <h3>Deep Parsing Resume...</h3>
+            <p>Running semantic chunkers, NLP token taggers, and matching skills taxonomy...</p>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-brain-circuit"></i></div>
+                <div class="brand-text">
+                    <h2>ResumeIQX</h2>
+                    <span>Career Suite</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="ats-dashboard">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                    <span>ATS Scorecard</span>
+                </button>
+                <button class="nav-item" data-tab="job-matcher">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <span>Job Matcher Portal</span>
+                </button>
+                <button class="nav-item" data-tab="career-recommender">
+                    <i class="fa-solid fa-route"></i>
+                    <span>Career Roadmap</span>
+                </button>
+                <button class="nav-item" data-tab="skill-browser">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Taxonomy Explorer</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="nlp-badge">
+                    <div class="badge-dot"></div>
+                    <span>NLP Model: Loaded</span>
+                </div>
+                <div class="meta-footer">Made for developers & students</div>
+            </div>
+        </aside>
+
+        <!-- Main Cockpit Area -->
+        <main class="main-content">
+            
+            <!-- Welcome Header Banner -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h1>AI Resume Analyzer & Career Recommender</h1>
+                    <p>Elevate your placement readiness using advanced Natural Language Processing and semantic matching.</p>
+                </div>
+            </header>
+
+            <!-- ---------------------------------------------------- -->
+            <!-- Tab 1: ATS Scorecard -->
+            <!-- ---------------------------------------------------- -->
+            <section id="ats-dashboard" class="tab-panel active">
+                <div class="tab-introduction">
+                    <h3>📄 Upload & Score Your Resume</h3>
+                    <p>Upload your PDF resume to extract contact records, list technologies, measure your score, and receive targeted improvement checklists.</p>
+                </div>
+
+                <!-- Drop & Upload File Zone -->
+                <div class="upload-container card">
+                    <form id="uploadForm" class="upload-form">
+                        <div class="drop-zone" id="dropZone">
+                            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                            <span class="drop-text">Drag and drop your PDF resume here, or <label for="fileInput" class="file-label">browse files</label></span>
+                            <span class="drop-subtext">Supports PDF format up to 16MB</span>
+                            <input type="file" id="fileInput" name="resume" accept=".pdf" class="hidden">
+                        </div>
+                        <div class="file-preview hidden" id="filePreview">
+                            <i class="fa-solid fa-file-pdf pdf-icon"></i>
+                            <div class="file-details">
+                                <span class="file-name" id="fileName">resume.pdf</span>
+                                <span class="file-size" id="fileSize">1.2 MB</span>
+                            </div>
+                            <button type="button" id="removeFileBtn" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        
+                        <!-- Student / Fresher Toggle -->
+                        <div class="profile-toggle-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="fresherToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <label for="fresherToggle" class="toggle-label">
+                                <i class="fa-solid fa-graduation-cap"></i> I am a Student / Fresher (Optimize scoring for academic & project profiles)
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="analyzeBtn" disabled>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Uploaded Resume
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Parsed Results Grid (Hidden by default until parsed) -->
+                <div id="resultsGrid" class="results-grid hidden">
+                    
+                    <!-- Top: Resume Preview Panel -->
+                    <div class="col-preview card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-file-invoice header-icon text-emerald"></i>
+                            <h3>Resume Preview & Status</h3>
+                        </div>
+                        <div class="preview-panel-content">
+                            <div class="preview-meta">
+                                <div class="meta-item">
+                                    <span class="meta-label">Status</span>
+                                    <span class="status-badge success"><i class="fa-solid fa-circle-check"></i> Upload Success</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">File Name</span>
+                                    <span id="previewFileName" class="meta-value">John_Doe_CV.pdf</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Total Pages</span>
+                                    <span id="previewPageCount" class="meta-value">1 Page</span>
+                                </div>
+                            </div>
+                            <div class="preview-text-block">
+                                <h5>Document Text Snippet</h5>
+                                <div class="preview-text-scroll">
+                                    <pre id="previewTextContent"></pre>
+                                    <div class="preview-text-fade"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Left: Overall Score Card -->
+                    <div class="col-score">
+                        <div class="card score-gauge-card">
+                            <h3>ATS COMPATIBILITY SCORE</h3>
+                            
+                            <!-- Custom Animated SVG Gauge -->
+                            <div class="radial-gauge-container">
+                                <svg width="180" height="180" viewBox="0 0 180 180" class="svg-gauge">
+                                    <circle cx="90" cy="90" r="70" class="gauge-bg" />
+                                    <circle cx="90" cy="90" r="70" class="gauge-fill" id="gaugeProgressCircle" />
+                                </svg>
+                                <div class="gauge-text">
+                                    <span id="scoreText">0%</span>
+                                </div>
+                            </div>
+                            
+                            <h4 id="scoreTier">Tier: Moderate Match</h4>
+                            <p>This score evaluates your contact profile, section depth, keyword distribution, and formatting limits.</p>
+                            
+                            <button id="downloadPdfBtn" class="btn-secondary use-width">
+                                <i class="fa-solid fa-file-arrow-down"></i> Export Detailed PDF Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Info Panel & Details -->
+                    <div class="col-details">
+                        <div class="card details-card">
+                            <div class="card-header">
+                                <i class="fa-solid fa-address-card header-icon"></i>
+                                <h3>Parsed Contact Information</h3>
+                            </div>
+                            
+                            <table class="meta-table">
+                                <tr>
+                                    <td><i class="fa-solid fa-user"></i> Name</td>
+                                    <td><strong id="resName">John Doe</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-envelope"></i> Email</td>
+                                    <td><span id="resEmail">john.doe@email.com</span></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-phone"></i> Phone</td>
+                                    <td><span id="resPhone">+1 555-0100</span></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-brands fa-linkedin"></i> LinkedIn</td>
+                                    <td><a href="#" id="resLinkedin" target="_blank">linkedin.com/in/johndoe</a></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-brands fa-github"></i> GitHub</td>
+                                    <td><a href="#" id="resGithub" target="_blank">github.com/johndoe</a></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Recommendations list -->
+                        <div class="card recommendations-card">
+                            <div class="card-header">
+                                <i class="fa-solid fa-list-check header-icon text-amber"></i>
+                                <h3>Actionable ATS Recommendations</h3>
+                            </div>
+                            <ul class="recommendation-list" id="recommendationList">
+                                <li>Loading suggestions...</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Bottom: Skill Breakdown -->
+                    <div class="col-skills card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-tags header-icon text-indigo"></i>
+                            <h3>Extracted Skill Taxonomy Breakdown</h3>
+                        </div>
+                        <p class="section-desc">Our NLP algorithm successfully extracted these skills. Click on a category folder below to browse your parsed keywords.</p>
+                        
+                        <!-- Mini categories selector -->
+                        <div class="categories-strip" id="categoriesStrip">
+                            <!-- JS injected categories -->
+                        </div>
+                        <div class="skill-badges-container" id="skillBadgesContainer">
+                            <!-- Injected badges -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ---------------------------------------------------- -->
+            <!-- Tab 2: Job Matcher Portal -->
+            <!-- ---------------------------------------------------- -->
+            <section id="job-matcher" class="tab-panel">
+                <div class="tab-introduction">
+                    <h3>🎯 Semantic Job Matching Engine</h3>
+                    <p>Paste a target Job Description or select a pre-loaded corporate sample JD to measure overlap and analyze keyword alignments.</p>
+                </div>
+
+                <div class="matcher-wrapper">
+                    <!-- Setup Form -->
+                    <div class="card matcher-form-card">
+                        <div class="form-group">
+                            <label for="sampleJdSelect"><i class="fa-solid fa-folder-open"></i> Select Pre-Loaded Corporate Job Description:</label>
+                            <select id="sampleJdSelect" class="form-control">
+                                <option value="">-- Choose a sample JD or paste custom text below --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="jdTextArea"><i class="fa-solid fa-code"></i> Paste Target Job Description Text:</label>
+                            <textarea id="jdTextArea" class="form-control text-area" placeholder="Paste the complete job description details, required skills, and responsibilities here..."></textarea>
+                        </div>
+                        
+                        <button id="compareBtn" class="btn-primary use-width">
+                            <i class="fa-solid fa-bolt"></i> Run Compatibility Comparison
+                        </button>
+                    </div>
+
+                    <!-- Match Comparison Results (Hidden until run) -->
+                    <div id="matcherResults" class="matcher-results-grid hidden">
+                        <!-- Score Display -->
+                        <div class="card match-score-card">
+                            <h3>COMPATIBILITY MATCH</h3>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="matchBarFill"></div>
+                                </div>
+                                <span class="progress-text" id="matchScoreText">0%</span>
+                            </div>
+                            <h4 id="matchTier">Tier: Moderate Match</h4>
+                            <p id="matchDesc">Please run the analysis to view details.</p>
+                            
+                            <div class="metric-mini-group">
+                                <div class="metric-mini-card">
+                                    <span class="mini-label">Semantic Similarity</span>
+                                    <span class="mini-value" id="semanticSimVal">0%</span>
+                                </div>
+                                <div class="metric-mini-card">
+                                    <span class="mini-label">Skill Token Coverage</span>
+                                    <span class="mini-value" id="skillCovVal">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Side by Side Badges -->
+                        <div class="card skill-mapping-card">
+                            <div class="badges-row">
+                                <div class="badges-column">
+                                    <h4><i class="fa-solid fa-circle-check text-emerald"></i> Matching Skills Possessed</h4>
+                                    <div class="badge-display-box positive" id="matchingSkillsBox">
+                                        <!-- Injected green badges -->
+                                    </div>
+                                </div>
+                                <div class="badges-column">
+                                    <h4><i class="fa-solid fa-circle-xmark text-rose"></i> Missing Skills (Skill Gap)</h4>
+                                    <div class="badge-display-box negative" id="missingSkillsBox">
+                                        <!-- Injected red badges -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ---------------------------------------------------- -->
+            <!-- Tab 3: Career Roadmap Planner -->
+            <!-- ---------------------------------------------------- -->
+            <section id="career-recommender" class="tab-panel">
+                <div class="tab-introduction">
+                    <h3>💼 Career Placement Pathway Planner</h3>
+                    <p>Unlock the career roles matching your skills, browse missing competencies, and explore structural roadmap next-steps.</p>
+                </div>
+
+                <div class="recommender-wrapper">
+                    <!-- Predicted Category Header -->
+                    <div class="card prediction-banner-card" id="predictionBanner">
+                        <h4>Predicted Primary Category Profile</h4>
+                        <h2 id="predictedCategoryText">Analyzing profile...</h2>
+                        <p id="predictionSummaryText">Please upload your resume in the ATS Scorecard tab first to calculate classification metrics.</p>
+                    </div>
+
+                    <!-- Recommended Job Cards list -->
+                    <div class="career-cards-container" id="careerCardsContainer">
+                        <div class="card placeholder-card">
+                            <i class="fa-solid fa-user-tie placeholder-icon"></i>
+                            <h4>No Career Pathway Matches Calculated</h4>
+                            <p>Please upload and score your resume in the **ATS Scorecard** tab first to map your skills database.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ---------------------------------------------------- -->
+            <!-- Tab 4: Skill Database Explorer -->
+            <!-- ---------------------------------------------------- -->
+            <section id="skill-browser" class="tab-panel">
+                <div class="tab-introduction">
+                    <h3>📚 Tracked Skill Taxonomy Explorer</h3>
+                    <p>Review the comprehensive list of 200+ industry-standard keywords our NLP engine extracts. Ensure your resume aligns with standard conventions to maximize score indexes.</p>
+                </div>
+
+                <div class="taxonomy-grid" id="taxonomyGrid">
+                    <!-- JS Injected expandable folders -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

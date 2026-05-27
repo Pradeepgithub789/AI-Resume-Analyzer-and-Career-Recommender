@@ -167,8 +167,53 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 // ==========================================================================
-// 3. API Handlers & Form Submissions
+// 3. API Handlers & Form Submissions (With Resilient Network Fallbacks)
 // ==========================================================================
+
+/**
+ * Resilient fetch wrapper that handles automatic retries for network-related errors,
+ * which are common on mobile connections, Safari keep-alive quirks, and Render server cold starts.
+ */
+async function fetchWithRetry(url, options = {}, retries = 2, delay = 1000) {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            let errMsg = `Server returned status ${response.status}: ${response.statusText}`;
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    errMsg = data.error || errMsg;
+                } else {
+                    const text = await response.text();
+                    const match = text.match(/<title>(.*?)<\/title>/i);
+                    if (match && match[1]) {
+                        errMsg = `Server Error: ${match[1]}`;
+                    }
+                }
+            } catch (e) {
+                // Ignore JSON/HTML parsing errors of the error body
+            }
+            throw new Error(errMsg);
+        }
+        return response;
+    } catch (err) {
+        // Check if the error is a connection drop/timeout (common Safari/mobile network behaviors)
+        const isNetworkError = err.name === 'TypeError' || 
+                               err.message.toLowerCase().includes('failed to fetch') || 
+                               err.message.toLowerCase().includes('load failed') || 
+                               err.message.toLowerCase().includes('networkerror') || 
+                               err.message.toLowerCase().includes('network connection was lost') ||
+                               err.message.toLowerCase().includes('connection aborted');
+        
+        if (retries > 0 && isNetworkError) {
+            console.warn(`Fetch failed for ${url}. Retrying in ${delay}ms... Remaining retries: ${retries}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return fetchWithRetry(url, options, retries - 1, delay * 1.5);
+        }
+        throw err;
+    }
+}
 
 // Parse Resume Upload
 el.uploadForm.addEventListener('submit', (e) => {
@@ -187,16 +232,11 @@ el.uploadForm.addEventListener('submit', (e) => {
     // Show spinner loader
     el.loadingOverlay.classList.remove('hidden');
     
-    fetch('/api/analyze', {
+    fetchWithRetry('/api/analyze', {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => { throw new Error(data.error || 'Server error'); });
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         state.parsedResume = data;
         renderAtsResults();
@@ -210,7 +250,11 @@ el.uploadForm.addEventListener('submit', (e) => {
     })
     .catch(err => {
         console.error(err);
-        showToast(err.message || 'Failed to analyze resume', 'error');
+        let msg = err.message || 'Failed to analyze resume';
+        if (msg.toLowerCase().includes('failed to fetch') || msg.toLowerCase().includes('load failed')) {
+            msg = 'Network connection failed. This can happen on slow mobile networks, if the file is too large, or if the Render server is sleeping (free tier). Please try again or use a smaller PDF file.';
+        }
+        showToast(msg, 'error');
     })
     .finally(() => {
         el.loadingOverlay.classList.add('hidden');
@@ -232,7 +276,7 @@ el.compareBtn.addEventListener('click', () => {
     
     el.loadingOverlay.classList.remove('hidden');
     
-    fetch('/api/match', {
+    fetchWithRetry('/api/match', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -242,12 +286,7 @@ el.compareBtn.addEventListener('click', () => {
             jd_text: jdText
         })
     })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => { throw new Error(data.error || 'Server error'); });
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         renderMatcherResults(data);
         showToast('Compatibility match calculated', 'success');
@@ -259,7 +298,11 @@ el.compareBtn.addEventListener('click', () => {
     })
     .catch(err => {
         console.error(err);
-        showToast(err.message || 'Failed to compare job description', 'error');
+        let msg = err.message || 'Failed to compare job description';
+        if (msg.toLowerCase().includes('failed to fetch') || msg.toLowerCase().includes('load failed')) {
+            msg = 'Network connection failed. Please check your internet connection and try again.';
+        }
+        showToast(msg, 'error');
     })
     .finally(() => {
         el.loadingOverlay.classList.add('hidden');
@@ -272,7 +315,7 @@ el.downloadPdfBtn.addEventListener('click', () => {
     
     el.loadingOverlay.classList.remove('hidden');
     
-    fetch('/api/download-report', {
+    fetchWithRetry('/api/download-report', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -284,10 +327,7 @@ el.downloadPdfBtn.addEventListener('click', () => {
             recommender_results: state.parsedResume.recommender_results
         })
     })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to generate PDF');
-        return response.blob();
-    })
+    .then(response => response.blob())
     .then(blob => {
         // Create dynamic anchor link to download blob stream
         const url = window.URL.createObjectURL(blob);
@@ -303,7 +343,11 @@ el.downloadPdfBtn.addEventListener('click', () => {
     })
     .catch(err => {
         console.error(err);
-        showToast('Could not compile PDF report', 'error');
+        let msg = err.message || 'Could not compile PDF report';
+        if (msg.toLowerCase().includes('failed to fetch') || msg.toLowerCase().includes('load failed')) {
+            msg = 'Network connection failed. Please check your internet connection and try again.';
+        }
+        showToast(msg, 'error');
     })
     .finally(() => {
         el.loadingOverlay.classList.add('hidden');

@@ -100,8 +100,8 @@ def generate_pdf_report(
         'ScoreTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=36,
-        leading=40,
+        fontSize=32,
+        leading=36,
         textColor=primary_color,
         alignment=1 # Centered
     )
@@ -143,15 +143,17 @@ def generate_pdf_report(
         ]
     ]
     
-    score_table = Table(score_card_data, colWidths=[1.8*inch, 5.2*inch])
+    score_table = Table(score_card_data, colWidths=[2.2*inch, 4.8*inch])
     score_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), light_bg),
         ('BOX', (0, 0), (-1, -1), 1, primary_color),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 12),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-        ('LEFTPADDING', (0, 0), (-1, -1), 15),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+        ('LEFTPADDING', (0, 0), (0, 0), 8),
+        ('RIGHTPADDING', (0, 0), (0, 0), 8),
+        ('LEFTPADDING', (1, 0), (1, 0), 12),
+        ('RIGHTPADDING', (1, 0), (1, 0), 15),
     ]))
     
     story.append(score_table)
